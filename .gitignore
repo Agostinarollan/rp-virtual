@@ -26,3 +26,4 @@ backend/.windsurf/
 backend/skills-lock.json
 
 *.tsbuildinfo
+*.tsbuildinfo

@@ -1,14 +1,115 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
-  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "mysql"
+}
+
+enum Rol {
+  ADMINISTRADOR
+  PROFESIONAL
+}
+
+enum TipoPractica {
+  MEDICAMENTO
+  CIRUGIA
+  INTERNACION
+}
+
+enum EstadoPrescripcion {
+  PENDIENTE
+  APROBADA
+  ENTREGADA
+  ANULADA
+}
+
+model Usuario {
+  idUsuario          Int      @id @default(autoincrement())
+  nombre             String   @db.VarChar(100)
+  apellido           String   @db.VarChar(100)
+  nombreUsuario      String   @unique @db.VarChar(50)
+  contrasena         String   @db.VarChar(255)
+  rol                Rol
+  activo             Boolean  @default(true)
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  profesional Profesional?
+
+  @@map("usuarios")
+}
+
+model Profesional {
+  idProfesional      Int      @id @default(autoincrement())
+  nombre             String   @db.VarChar(100)
+  apellido           String   @db.VarChar(100)
+  especialidad       String   @db.VarChar(100)
+  matricula          String   @unique @db.VarChar(50)
+  firma              String?  @db.VarChar(255)
+  activo             Boolean  @default(true)
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  idUsuario Int     @unique
+  usuario   Usuario @relation(fields: [idUsuario], references: [idUsuario])
+
+  prescripciones Prescripcion[]
+
+  @@map("profesionales")
+}
+
+model Paciente {
+  idPaciente         Int       @id @default(autoincrement())
+  nombre             String    @db.VarChar(100)
+  apellido           String    @db.VarChar(100)
+  dni                String    @unique @db.VarChar(20)
+  fechaNacimiento    DateTime?
+  numeroAfiliado     String?   @db.VarChar(50)
+  celular            String?   @db.VarChar(30)
+  activo             Boolean   @default(true)
+  fechaCreacion      DateTime  @default(now())
+  fechaActualizacion DateTime  @updatedAt
+
+  idObraSocial Int?
+  obraSocial   ObraSocial? @relation(fields: [idObraSocial], references: [idObraSocial])
+
+  prescripciones Prescripcion[]
+
+  @@map("pacientes")
+}
+
+model ObraSocial {
+  idObraSocial       Int      @id @default(autoincrement())
+  nombre             String   @unique @db.VarChar(100)
+  activo             Boolean  @default(true)
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  pacientes Paciente[]
+
+  @@map("obras_sociales")
+}
+
+model Prescripcion {
+  idPrescripcion Int                @id @default(autoincrement())
+  tipoPractica   TipoPractica
+  diagnostico    String             @db.Text
+  observaciones  String?            @db.Text
+  fecha          DateTime
+  estado         EstadoPrescripcion @default(PENDIENTE)
+  activo         Boolean            @default(true)
+
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  idPaciente Int
+  paciente   Paciente @relation(fields: [idPaciente], references: [idPaciente])
+
+  idProfesional Int
+  profesional   Profesional @relation(fields: [idProfesional], references: [idProfesional])
+
+  @@map("prescripciones")
 }

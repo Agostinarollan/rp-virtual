@@ -1,0 +1,55 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { ProfesionalesService } from './profesionales.service';
+import { CreateProfesionalDto } from './dto/create-profesional.dto';
+import { UpdateProfesionalDto } from './dto/update-profesional.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Rol } from '../common/enums/rol.enum';
+
+// RF-04 - Gestión de profesionales: ABM exclusivo de Administrador.
+@Controller('profesionales')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class ProfesionalesController {
+  constructor(private readonly profesionalesService: ProfesionalesService) {}
+
+  @Post()
+  @Roles(Rol.ADMINISTRADOR)
+  create(@Body() dto: CreateProfesionalDto) {
+    return this.profesionalesService.create(dto);
+  }
+
+  // Consulta habilitada para ambos roles (el Administrador la necesita para
+  // seleccionar el profesional al emitir una prescripción - RF-08).
+  @Get()
+  findAll() {
+    return this.profesionalesService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.profesionalesService.findOne(id);
+  }
+
+  @Patch(':id')
+  @Roles(Rol.ADMINISTRADOR)
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProfesionalDto) {
+    return this.profesionalesService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @Roles(Rol.ADMINISTRADOR)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.profesionalesService.remove(id);
+  }
+}
