@@ -7,8 +7,11 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfesionalesService } from './profesionales.service';
 import { CreateProfesionalDto } from './dto/create-profesional.dto';
 import { UpdateProfesionalDto } from './dto/update-profesional.dto';
@@ -16,6 +19,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Rol } from '../common/enums/rol.enum';
+import { CurrentUser, CurrentUserPayload } from '../common/decorators/current-user.decorator';
 
 // RF-04 - Gestión de profesionales: ABM exclusivo de Administrador.
 @Controller('profesionales')
@@ -51,5 +55,17 @@ export class ProfesionalesController {
   @Roles(Rol.ADMINISTRADOR)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.profesionalesService.remove(id);
+  }
+
+  // Sin @Roles: la habilitamos para ambos roles. El service decide si este
+  // usuario puede tocar esta firma puntual (RB-04: el Profesional solo la suya).
+  @Post(':id/firma')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 2 * 1024 * 1024 } }))
+  subirFirma(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.profesionalesService.subirFirma(id, file, user);
   }
 }

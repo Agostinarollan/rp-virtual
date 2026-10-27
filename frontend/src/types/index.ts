@@ -20,15 +20,11 @@ export const TIPO_PRACTICA_LABEL: Record<TipoPractica, string> = {
 };
 
 export enum EstadoPrescripcion {
-  PENDIENTE = 'PENDIENTE',
-  APROBADA = 'APROBADA',
   ENTREGADA = 'ENTREGADA',
   ANULADA = 'ANULADA',
 }
 
 export const ESTADO_PRESCRIPCION_COLOR: Record<EstadoPrescripcion, string> = {
-  [EstadoPrescripcion.PENDIENTE]: 'gold',
-  [EstadoPrescripcion.APROBADA]: 'blue',
   [EstadoPrescripcion.ENTREGADA]: 'green',
   [EstadoPrescripcion.ANULADA]: 'red',
 };
@@ -69,6 +65,7 @@ export interface Profesional {
   apellido: string;
   especialidad: string;
   matricula: string;
+  firma?: string | null;
 }
 
 export interface Prescripcion {

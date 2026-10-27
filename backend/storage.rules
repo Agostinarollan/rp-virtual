@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Reglas permisivas a propósito: el emulador no tiene usuarios reales de
+// Firebase Auth (nuestra autenticación es el JWT propio del backend), y
+// el control de quién puede subir qué firma ya lo valida el backend antes
+// de hablarle a Storage. Si esto fuera a producción real, habría que
+// restringir esto en serio.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+  }
+}

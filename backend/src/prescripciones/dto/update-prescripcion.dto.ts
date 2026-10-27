@@ -10,7 +10,7 @@ export class UpdatePrescripcionDto extends PartialType(
   // edición; para eso se anula y se crea una nueva (mantiene trazabilidad).
   @IsOptional()
   @IsEnum(EstadoPrescripcion, {
-    message: 'El estado debe ser PENDIENTE, APROBADA, ENTREGADA o ANULADA.',
+    message: 'El estado debe ser ENTREGADA o ANULADA.',
   })
   estado?: EstadoPrescripcion;
 }

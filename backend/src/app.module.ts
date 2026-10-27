@@ -7,6 +7,7 @@ import { ProfesionalesModule } from './profesionales/profesionales.module';
 import { PacientesModule } from './pacientes/pacientes.module';
 import { ObrasSocialesModule } from './obras-sociales/obras-sociales.module';
 import { PrescripcionesModule } from './prescripciones/prescripciones.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PrescripcionesModule } from './prescripciones/prescripciones.module';
     PacientesModule,
     ObrasSocialesModule,
     PrescripcionesModule,
+    FirebaseModule,
   ],
 })
 export class AppModule {}

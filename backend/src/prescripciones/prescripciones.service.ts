@@ -12,7 +12,16 @@ import { Rol } from '../common/enums/rol.enum';
 
 const includeCompleto = {
   paciente: { include: { obraSocial: true } },
-  profesional: { select: { idProfesional: true, nombre: true, apellido: true, matricula: true, especialidad: true } },
+  profesional: {
+    select: {
+      idProfesional: true,
+      nombre: true,
+      apellido: true,
+      matricula: true,
+      especialidad: true,
+      firma: true,
+    },
+  },
 };
 
 @Injectable()
@@ -61,6 +70,8 @@ export class PrescripcionesService {
         tipoPractica: dto.tipoPractica,
         diagnostico: dto.diagnostico,
         observaciones: dto.observaciones,
+        // Estado explícito: toda prescripción nueva nace ENTREGADA.
+        estado: 'ENTREGADA',
         fecha: dto.fecha ? new Date(dto.fecha) : new Date(),
       },
       include: includeCompleto,

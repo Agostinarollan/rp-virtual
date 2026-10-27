@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Table, Button, Input, Space, Tag, Typography, message } from 'antd';
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, SearchOutlined, FilePdfOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { api } from '../api/axios';
@@ -9,6 +9,7 @@ import {
   TIPO_PRACTICA_LABEL,
   type Prescripcion,
 } from '../types';
+import { generarPdfPrescripcion } from '../utils/generarPdfPrescripcion';
 
 export function PrescripcionesListPage() {
   const navigate = useNavigate();
@@ -90,6 +91,17 @@ export function PrescripcionesListPage() {
             title: 'Estado',
             render: (_, r) => (
               <Tag color={ESTADO_PRESCRIPCION_COLOR[r.estado]}>{r.estado}</Tag>
+            ),
+          },
+          {
+            title: 'Acciones',
+            width: 120,
+            render: (_, r) => (
+              <Space onClick={(e) => e.stopPropagation()}>
+                <Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/prescripciones/${r.idPrescripcion}`)} />
+                <Button size="small" icon={<EditOutlined />} onClick={() => navigate(`/prescripciones/${r.idPrescripcion}/editar`)} />
+                <Button size="small" icon={<FilePdfOutlined />} onClick={() => void generarPdfPrescripcion(r)} />
+              </Space>
             ),
           },
         ]}

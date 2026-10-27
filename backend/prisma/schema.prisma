@@ -1,3 +1,5 @@
+// RP Virtual - Prisma Schema
+// TP Final - Programación IV - UTN FRRA
 
 generator client {
   provider = "prisma-client"
@@ -8,11 +10,17 @@ datasource db {
   provider = "mysql"
 }
 
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+
+// Reemplaza la entidad "Rol": pedido del docente.
 enum Rol {
   ADMINISTRADOR
   PROFESIONAL
 }
 
+// Reemplaza la entidad "Tipo_Practica" para simplificar el modelo.
 enum TipoPractica {
   MEDICAMENTO
   CIRUGIA
@@ -20,11 +28,13 @@ enum TipoPractica {
 }
 
 enum EstadoPrescripcion {
-  PENDIENTE
-  APROBADA
   ENTREGADA
   ANULADA
 }
+
+// ─────────────────────────────────────────
+// ENTIDADES
+// ─────────────────────────────────────────
 
 model Usuario {
   idUsuario          Int      @id @default(autoincrement())
@@ -99,7 +109,7 @@ model Prescripcion {
   diagnostico    String             @db.Text
   observaciones  String?            @db.Text
   fecha          DateTime
-  estado         EstadoPrescripcion @default(PENDIENTE)
+  estado         EstadoPrescripcion @default(ENTREGADA)
   activo         Boolean            @default(true)
 
   fechaCreacion      DateTime @default(now())

@@ -7,6 +7,12 @@ import { LoginPage } from './pages/LoginPage';
 import { PrescripcionesListPage } from './pages/PrescripcionesListPage';
 import { PrescripcionFormPage } from './pages/PrescripcionFormPage';
 import { PrescripcionDetailPage } from './pages/PrescripcionDetailPage';
+import { PrescripcionEditPage } from './pages/PrescripcionEditPage';
+import { PacientesPage } from './pages/PacientesPage';
+import { ProfesionalesPage } from './pages/ProfesionalesPage';
+import { ObrasSocialesPage } from './pages/ObrasSocialesPage';
+import { UsuariosPage } from './pages/UsuariosPage';
+import { MiFirmaPage } from './pages/MiFirmaPage';
 
 function App() {
   return (
@@ -21,8 +27,12 @@ function App() {
               <Route path="/prescripciones" element={<PrescripcionesListPage />} />
               <Route path="/prescripciones/nueva" element={<PrescripcionFormPage />} />
               <Route path="/prescripciones/:id" element={<PrescripcionDetailPage />} />
-              {/* Pacientes, Profesionales, Obras sociales y Usuarios (ABMs
-                  del Administrador) quedan para la próxima entrega. */}
+              <Route path="/prescripciones/:id/editar" element={<PrescripcionEditPage />} />
+              <Route path="/pacientes" element={<PacientesPage />} />
+              <Route path="/profesionales" element={<ProfesionalesPage />} />
+              <Route path="/obras-sociales" element={<ObrasSocialesPage />} />
+              <Route path="/usuarios" element={<UsuariosPage />} />
+              <Route path="/mi-firma" element={<MiFirmaPage />} />
             </Route>
           </Route>
 

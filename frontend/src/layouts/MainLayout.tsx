@@ -1,5 +1,5 @@
 import { Layout, Menu, Typography, Avatar, Dropdown, Space } from 'antd';
-import { UserOutlined, MedicineBoxOutlined, TeamOutlined, LogoutOutlined } from '@ant-design/icons';
+import { UserOutlined, MedicineBoxOutlined, TeamOutlined, LogoutOutlined, EditOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { Rol } from '../types';
@@ -16,6 +16,9 @@ export function MainLayout() {
 
   const items = [
     { key: '/prescripciones', icon: <MedicineBoxOutlined />, label: 'Prescripciones' },
+    ...(!esAdministrador
+      ? [{ key: '/mi-firma', icon: <EditOutlined />, label: 'Mi firma' }]
+      : []),
     ...(esAdministrador
       ? [
           { key: '/pacientes', icon: <TeamOutlined />, label: 'Pacientes' },
