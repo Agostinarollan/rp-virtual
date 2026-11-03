@@ -5,10 +5,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
+import { HistorialService } from '../historial/historial.service';
 import { CreatePrescripcionDto } from './dto/create-prescripcion.dto';
 import { UpdatePrescripcionDto } from './dto/update-prescripcion.dto';
 import { CurrentUserPayload } from '../common/decorators/current-user.decorator';
 import { Rol } from '../common/enums/rol.enum';
+import { AccionHistorial } from '../common/enums/accion-historial.enum';
+import { EstadoPrescripcion } from '../common/enums/estado-prescripcion.enum';
 
 const includeCompleto = {
   paciente: { include: { obraSocial: true } },
@@ -26,7 +30,25 @@ const includeCompleto = {
 
 @Injectable()
 export class PrescripcionesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+    private readonly historialService: HistorialService,
+  ) {}
+
+  // En la BD profesional.firma es la ruta en Storage; hacia afuera va la URL
+  // (la usan el detalle y el PDF de la prescripción como src de la imagen).
+  private async conUrlFirma<T extends { profesional: { firma: string | null } }>(
+    prescripcion: T,
+  ): Promise<T> {
+    return {
+      ...prescripcion,
+      profesional: {
+        ...prescripcion.profesional,
+        firma: await this.storageService.resolverUrl(prescripcion.profesional.firma),
+      },
+    };
+  }
 
   // RB-04: si el usuario logueado es PROFESIONAL, siempre trabaja con su
   // propio idProfesional; si es ADMINISTRADOR, puede elegir cualquiera.
@@ -62,8 +84,15 @@ export class PrescripcionesService {
     if (!profesional) {
       throw new NotFoundException(`No se encontró el profesional con id ${idProfesional}.`);
     }
+    // Bajas lógicas: no se puede prescribir a/por alguien dado de baja.
+    if (!paciente.activo) {
+      throw new BadRequestException('El paciente está dado de baja.');
+    }
+    if (!profesional.activo) {
+      throw new BadRequestException('El profesional está dado de baja.');
+    }
 
-    return this.prisma.prescripcion.create({
+    const prescripcion = await this.prisma.prescripcion.create({
       data: {
         idPaciente: dto.idPaciente,
         idProfesional,
@@ -76,12 +105,14 @@ export class PrescripcionesService {
       },
       include: includeCompleto,
     });
+    await this.historialService.registrar(AccionHistorial.CREACION, prescripcion, user);
+    return this.conUrlFirma(prescripcion);
   }
 
   // RF-08/RF-09: el Profesional solo ve sus propias prescripciones;
   // el Administrador ve todas.
-  findAll(user: CurrentUserPayload, search?: string) {
-    return this.prisma.prescripcion.findMany({
+  async findAll(user: CurrentUserPayload, search?: string) {
+    const prescripciones = await this.prisma.prescripcion.findMany({
       where: {
         activo: true,
         idProfesional: user.rol === Rol.PROFESIONAL ? (user.idProfesional ?? -1) : undefined,
@@ -98,6 +129,7 @@ export class PrescripcionesService {
       include: includeCompleto,
       orderBy: { fecha: 'desc' },
     });
+    return Promise.all(prescripciones.map((prescripcion) => this.conUrlFirma(prescripcion)));
   }
 
   async findOne(id: number, user: CurrentUserPayload) {
@@ -109,13 +141,13 @@ export class PrescripcionesService {
       throw new NotFoundException(`No se encontró la prescripción con id ${id}.`);
     }
     this.verificarPermisoSobrePrescripcion(prescripcion, user);
-    return prescripcion;
+    return this.conUrlFirma(prescripcion);
   }
 
   async update(id: number, dto: UpdatePrescripcionDto, user: CurrentUserPayload) {
     const prescripcion = await this.findOne(id, user);
 
-    return this.prisma.prescripcion.update({
+    const actualizada = await this.prisma.prescripcion.update({
       where: { idPrescripcion: prescripcion.idPrescripcion },
       data: {
         tipoPractica: dto.tipoPractica,
@@ -126,15 +158,32 @@ export class PrescripcionesService {
       },
       include: includeCompleto,
     });
+
+    // Si en la edición se pasó a ANULADA, en el historial cuenta como anulación.
+    const accion =
+      actualizada.estado === EstadoPrescripcion.ANULADA &&
+      prescripcion.estado !== EstadoPrescripcion.ANULADA
+        ? AccionHistorial.ANULACION
+        : AccionHistorial.MODIFICACION;
+    await this.historialService.registrar(accion, actualizada, user, prescripcion);
+
+    return this.conUrlFirma(actualizada);
   }
 
   // Baja lógica (RB-14): se conserva la prescripción para trazabilidad clínica.
   async remove(id: number, user: CurrentUserPayload) {
     const prescripcion = await this.findOne(id, user);
-    return this.prisma.prescripcion.update({
+    const anulada = await this.prisma.prescripcion.update({
       where: { idPrescripcion: prescripcion.idPrescripcion },
       data: { activo: false, estado: 'ANULADA' },
     });
+    await this.historialService.registrar(
+      AccionHistorial.ANULACION,
+      { ...prescripcion, estado: anulada.estado },
+      user,
+      prescripcion,
+    );
+    return anulada;
   }
 
   private verificarPermisoSobrePrescripcion(

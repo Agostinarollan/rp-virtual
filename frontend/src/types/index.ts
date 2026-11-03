@@ -87,3 +87,44 @@ export interface CreatePrescripcionPayload {
   diagnostico: string;
   observaciones?: string;
 }
+
+// Historial de prescripciones (se guarda en Firestore, lo consulta solo el Administrador).
+export enum AccionHistorial {
+  CREACION = 'CREACION',
+  MODIFICACION = 'MODIFICACION',
+  ANULACION = 'ANULACION',
+}
+
+export const ACCION_HISTORIAL_LABEL: Record<AccionHistorial, string> = {
+  [AccionHistorial.CREACION]: 'Creación',
+  [AccionHistorial.MODIFICACION]: 'Modificación',
+  [AccionHistorial.ANULACION]: 'Anulación',
+};
+
+export const ACCION_HISTORIAL_COLOR: Record<AccionHistorial, string> = {
+  [AccionHistorial.CREACION]: 'green',
+  [AccionHistorial.MODIFICACION]: 'blue',
+  [AccionHistorial.ANULACION]: 'red',
+};
+
+export interface CambioHistorial {
+  campo: 'tipoPractica' | 'diagnostico' | 'observaciones' | 'estado' | 'fecha';
+  antes: string | null;
+  despues: string | null;
+}
+
+export interface RegistroHistorial {
+  id: string;
+  accion: AccionHistorial;
+  fecha: string; // cuándo se hizo la acción
+  idPrescripcion: number;
+  usuario: { idUsuario: number; nombreUsuario: string; rol: Rol };
+  paciente: { idPaciente: number; nombre: string; apellido: string; dni: string };
+  profesional: { idProfesional: number; nombre: string; apellido: string; matricula: string };
+  tipoPractica: TipoPractica;
+  diagnostico: string;
+  observaciones?: string | null;
+  estado: EstadoPrescripcion;
+  fechaPrescripcion: string;
+  cambios: CambioHistorial[];
+}

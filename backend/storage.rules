@@ -1,14 +1,17 @@
 rules_version = '2';
 
-// Reglas permisivas a propósito: el emulador no tiene usuarios reales de
-// Firebase Auth (nuestra autenticación es el JWT propio del backend), y
-// el control de quién puede subir qué firma ya lo valida el backend antes
-// de hablarle a Storage. Si esto fuera a producción real, habría que
-// restringir esto en serio.
+// Ningún cliente accede directo a Storage: nuestra autenticación es el JWT
+// propio del backend (no Firebase Auth), así que request.auth siempre es null.
+// - Las subidas las hace el backend con firebase-admin, que ignora estas reglas
+//   (y antes valida rol/permiso con RB-04).
+// - Las lecturas se hacen con la URL que devuelve el backend, que incluye un
+//   "download token": las URLs con token válido tampoco pasan por estas reglas.
+// Por eso se puede cerrar todo sin romper nada (y nadie puede leer/pisar
+// firmas usando solo la config del proyecto).
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }
