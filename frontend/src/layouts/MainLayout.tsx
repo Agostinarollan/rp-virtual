@@ -1,5 +1,5 @@
 import { Layout, Menu, Typography, Avatar, Dropdown, Space } from 'antd';
-import { UserOutlined, MedicineBoxOutlined, TeamOutlined, LogoutOutlined, EditOutlined } from '@ant-design/icons';
+import { UserOutlined, MedicineBoxOutlined, TeamOutlined, LogoutOutlined, EditOutlined, HistoryOutlined } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { Rol } from '../types';
@@ -25,6 +25,7 @@ export function MainLayout() {
           { key: '/profesionales', icon: <TeamOutlined />, label: 'Profesionales' },
           { key: '/obras-sociales', icon: <TeamOutlined />, label: 'Obras sociales' },
           { key: '/usuarios', icon: <UserOutlined />, label: 'Usuarios' },
+          { key: '/historial', icon: <HistoryOutlined />, label: 'Historial' },
         ]
       : []),
   ];

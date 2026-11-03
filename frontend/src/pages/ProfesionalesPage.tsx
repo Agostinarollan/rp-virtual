@@ -230,7 +230,12 @@ export function ProfesionalesPage() {
           <>
             <Typography.Text strong>Firma digital</Typography.Text>
             <div style={{ marginTop: 8 }}>
-              <FirmaUploader idProfesional={editando.idProfesional} firmaActual={editando.firma} />
+              {/* onSubida recarga la tabla: si no, al reabrir el modal se veía la firma vieja */}
+              <FirmaUploader
+                idProfesional={editando.idProfesional}
+                firmaActual={editando.firma}
+                onSubida={cargar}
+              />
             </div>
           </>
         )}

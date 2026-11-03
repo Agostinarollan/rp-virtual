@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Upload, Button, message, Image, Space, Typography } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { RcFile } from 'antd/es/upload';
@@ -15,6 +15,12 @@ const TIPOS_PERMITIDOS = ['image/png', 'image/jpeg', 'image/webp'];
 export function FirmaUploader({ idProfesional, firmaActual, onSubida }: FirmaUploaderProps) {
   const [subiendo, setSubiendo] = useState(false);
   const [firma, setFirma] = useState(firmaActual);
+
+  // Si cambia el profesional (ej: se abre el modal de otro), mostramos su firma
+  // y no la que quedó del anterior.
+  useEffect(() => {
+    setFirma(firmaActual);
+  }, [idProfesional, firmaActual]);
 
   const subir = async (file: RcFile) => {
     if (!TIPOS_PERMITIDOS.includes(file.type)) {

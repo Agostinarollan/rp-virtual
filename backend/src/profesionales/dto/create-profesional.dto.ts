@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateProfesionalDto {
   @IsString()
@@ -18,9 +18,8 @@ export class CreateProfesionalDto {
   @IsNotEmpty({ message: 'La matrícula es obligatoria.' })
   matricula: string;
 
-  @IsOptional()
-  @IsString()
-  firma?: string;
+  // La firma no va en este DTO: solo se carga subiendo la imagen a
+  // POST /profesionales/:id/firma (en la BD se guarda la ruta de Storage).
 
   // El profesional se vincula a un usuario con rol PROFESIONAL ya existente.
   @IsInt()

@@ -13,6 +13,7 @@ import { ProfesionalesPage } from './pages/ProfesionalesPage';
 import { ObrasSocialesPage } from './pages/ObrasSocialesPage';
 import { UsuariosPage } from './pages/UsuariosPage';
 import { MiFirmaPage } from './pages/MiFirmaPage';
+import { HistorialPage } from './pages/HistorialPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
               <Route path="/profesionales" element={<ProfesionalesPage />} />
               <Route path="/obras-sociales" element={<ObrasSocialesPage />} />
               <Route path="/usuarios" element={<UsuariosPage />} />
+              <Route path="/historial" element={<HistorialPage />} />
               <Route path="/mi-firma" element={<MiFirmaPage />} />
             </Route>
           </Route>

@@ -68,4 +68,10 @@ export class ProfesionalesController {
   ) {
     return this.profesionalesService.subirFirma(id, file, user);
   }
+
+  // Devuelve { url } con la URL de descarga de la firma (emulador o Storage real).
+  @Get(':id/firma')
+  obtenerFirma(@Param('id', ParseIntPipe) id: number) {
+    return this.profesionalesService.obtenerFirma(id);
+  }
 }

@@ -11,9 +11,10 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "storage:emulator": "firebase emulators:start --only storage --import=./firebase-data --export-on-exit=./firebase-data",
+    "storage:emulator": "node -e \"require('fs').mkdirSync('firebase-data', { recursive: true })\" && firebase emulators:start --only storage --import=./firebase-data --export-on-exit=./firebase-data",
+    "emulators": "node -e \"require('fs').mkdirSync('firebase-data', { recursive: true })\" && firebase emulators:start --only storage,firestore --import=./firebase-data --export-on-exit=./firebase-data",
     "prisma:seed": "npm run build && node dist/seed.js",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint": "oxlint -c oxlint.json src test",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
@@ -44,6 +45,7 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^20.14.0",
     "@types/passport-jwt": "^4.0.1",
+    "oxlint": "^1.90.0",
     "prisma": "7.10.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"

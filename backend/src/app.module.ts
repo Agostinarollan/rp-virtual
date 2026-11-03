@@ -8,6 +8,10 @@ import { PacientesModule } from './pacientes/pacientes.module';
 import { ObrasSocialesModule } from './obras-sociales/obras-sociales.module';
 import { PrescripcionesModule } from './prescripciones/prescripciones.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { StorageModule } from './storage/storage.module';
+import { FirestoreModule } from './firestore/firestore.module';
+import { PlantillasModule } from './plantillas/plantillas.module';
+import { HistorialModule } from './historial/historial.module';
 
 @Module({
   imports: [
@@ -20,6 +24,10 @@ import { FirebaseModule } from './firebase/firebase.module';
     ObrasSocialesModule,
     PrescripcionesModule,
     FirebaseModule,
+    StorageModule,
+    FirestoreModule,
+    PlantillasModule,
+    HistorialModule,
   ],
 })
 export class AppModule {}
