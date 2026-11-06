@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { Rol } from '../../common/enums/rol.enum';
 
 export class CreateUsuarioDto {
@@ -19,6 +19,11 @@ export class CreateUsuarioDto {
   contrasena: string;
 
   // RB-02: cada usuario tiene un rol (reemplaza a la entidad Rol).
-  @IsEnum(Rol, { message: 'El rol debe ser ADMINISTRADOR o PROFESIONAL.' })
+  @IsEnum(Rol, { message: 'El rol debe ser ADMINISTRADOR, PROFESIONAL u OBRA_SOCIAL.' })
   rol: Rol;
+
+  // Obligatorio solo si el rol es OBRA_SOCIAL (lo valida el service).
+  @IsOptional()
+  @IsInt()
+  idObraSocial?: number;
 }

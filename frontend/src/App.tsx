@@ -14,6 +14,9 @@ import { ObrasSocialesPage } from './pages/ObrasSocialesPage';
 import { UsuariosPage } from './pages/UsuariosPage';
 import { MiFirmaPage } from './pages/MiFirmaPage';
 import { HistorialPage } from './pages/HistorialPage';
+import { TiposPracticaPage } from './pages/TiposPracticaPage';
+import { HabitacionesPage } from './pages/HabitacionesPage';
+import { QuirofanoPage } from './pages/QuirofanoPage';
 
 function App() {
   return (
@@ -34,6 +37,9 @@ function App() {
               <Route path="/obras-sociales" element={<ObrasSocialesPage />} />
               <Route path="/usuarios" element={<UsuariosPage />} />
               <Route path="/historial" element={<HistorialPage />} />
+              <Route path="/tipos-practica" element={<TiposPracticaPage />} />
+              <Route path="/habitaciones" element={<HabitacionesPage />} />
+              <Route path="/quirofano" element={<QuirofanoPage />} />
               <Route path="/mi-firma" element={<MiFirmaPage />} />
             </Route>
           </Route>

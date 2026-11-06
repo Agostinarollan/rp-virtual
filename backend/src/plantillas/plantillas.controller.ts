@@ -4,6 +4,8 @@ import { CreatePlantillaDto } from './dto/create-plantilla.dto';
 import { UpdatePlantillaDto } from './dto/update-plantilla.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { Rol } from '../common/enums/rol.enum';
 import { CurrentUser, CurrentUserPayload } from '../common/decorators/current-user.decorator';
 
 // CRUD de ejemplo sobre Firestore. Igual que Prescripciones: ambos roles
@@ -11,6 +13,7 @@ import { CurrentUser, CurrentUserPayload } from '../common/decorators/current-us
 // El :id es el id de documento que genera Firestore (string), no un número.
 @Controller('plantillas')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Rol.ADMINISTRADOR, Rol.PROFESIONAL)
 export class PlantillasController {
   constructor(private readonly plantillasService: PlantillasService) {}
 

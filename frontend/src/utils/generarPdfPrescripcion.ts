@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import dayjs from 'dayjs';
-import { TIPO_PRACTICA_LABEL, type Prescripcion } from '../types';
+import { ESTADO_PRESCRIPCION_LABEL, type Prescripcion } from '../types';
 
 // Descarga una imagen (la firma, servida por el emulador de Firebase Storage)
 // y la convierte a base64 para poder incrustarla en el PDF con jsPDF.
@@ -57,7 +57,7 @@ export async function generarPdfPrescripcion(prescripcion: Prescripcion) {
 
   fila('Prescripción N°', String(prescripcion.idPrescripcion));
   fila('Fecha', dayjs(prescripcion.fecha).format('DD/MM/YYYY'));
-  fila('Estado', prescripcion.estado);
+  fila('Estado', ESTADO_PRESCRIPCION_LABEL[prescripcion.estado]);
   y += 3;
 
   fila('Paciente', `${prescripcion.paciente.apellido}, ${prescripcion.paciente.nombre}`);
@@ -70,7 +70,7 @@ export async function generarPdfPrescripcion(prescripcion: Prescripcion) {
     `${prescripcion.profesional.apellido}, ${prescripcion.profesional.nombre} (M.P. ${prescripcion.profesional.matricula})`,
   );
   fila('Especialidad', prescripcion.profesional.especialidad);
-  fila('Tipo de práctica', TIPO_PRACTICA_LABEL[prescripcion.tipoPractica]);
+  fila('Tipo de práctica', prescripcion.tipoPractica.nombre);
   y += 6;
 
   // --- Diagnóstico ---

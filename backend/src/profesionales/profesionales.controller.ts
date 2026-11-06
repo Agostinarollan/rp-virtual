@@ -22,8 +22,10 @@ import { Rol } from '../common/enums/rol.enum';
 import { CurrentUser, CurrentUserPayload } from '../common/decorators/current-user.decorator';
 
 // RF-04 - Gestión de profesionales: ABM exclusivo de Administrador.
+// Por defecto (consultas y firma) Administrador y Profesional; la Obra Social no accede.
 @Controller('profesionales')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Rol.ADMINISTRADOR, Rol.PROFESIONAL)
 export class ProfesionalesController {
   constructor(private readonly profesionalesService: ProfesionalesService) {}
 

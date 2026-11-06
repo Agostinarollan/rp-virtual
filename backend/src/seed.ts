@@ -44,6 +44,35 @@ async function main() {
   }
 
   console.log('Obras sociales cargadas:', obrasSociales.join(', '));
+
+  // Tipos de práctica (la migración ya los crea; el upsert no duplica).
+  const tiposPractica = [
+    { codigo: 'MEDICAMENTO', nombre: 'Medicamento' },
+    { codigo: 'CIRUGIA', nombre: 'Cirugía' },
+    { codigo: 'INTERNACION', nombre: 'Internación' },
+  ];
+  for (const tipo of tiposPractica) {
+    await prisma.tipoPractica.upsert({ where: { codigo: tipo.codigo }, update: {}, create: tipo });
+  }
+  console.log('Tipos de práctica cargados:', tiposPractica.map((t) => t.nombre).join(', '));
+
+  // Habitaciones y quirófanos de ejemplo
+  const habitaciones = [
+    { numero: '101', piso: '1' },
+    { numero: '102', piso: '1' },
+    { numero: '201', piso: '2' },
+    { numero: '202', piso: '2' },
+  ];
+  for (const habitacion of habitaciones) {
+    await prisma.habitacion.upsert({ where: { numero: habitacion.numero }, update: {}, create: habitacion });
+  }
+  console.log('Habitaciones cargadas:', habitaciones.map((h) => h.numero).join(', '));
+
+  const quirofanos = ['Quirófano 1', 'Quirófano 2', 'Quirófano 3'];
+  for (const nombre of quirofanos) {
+    await prisma.quirofano.upsert({ where: { nombre }, update: {}, create: { nombre } });
+  }
+  console.log('Quirófanos cargados:', quirofanos.join(', '));
 }
 
 main()

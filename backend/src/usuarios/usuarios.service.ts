@@ -1,8 +1,14 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { Rol } from '../common/enums/rol.enum';
 
 // Campos seguros para devolver al cliente (nunca la contraseña).
 const usuarioSeguroSelect = {
@@ -11,6 +17,8 @@ const usuarioSeguroSelect = {
   apellido: true,
   nombreUsuario: true,
   rol: true,
+  idObraSocial: true,
+  obraSocial: { select: { nombre: true } },
   activo: true,
   fechaCreacion: true,
   fechaActualizacion: true,
@@ -19,6 +27,22 @@ const usuarioSeguroSelect = {
 @Injectable()
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
+
+  // Un usuario OBRA_SOCIAL tiene que estar vinculado a una obra social activa;
+  // los demás roles no llevan obra social. Devuelve el idObraSocial a guardar.
+  private async resolverObraSocial(rol: Rol, idObraSocial?: number | null): Promise<number | null> {
+    if (rol !== Rol.OBRA_SOCIAL) {
+      return null;
+    }
+    if (!idObraSocial) {
+      throw new BadRequestException('Un usuario con rol OBRA_SOCIAL debe tener una obra social asociada.');
+    }
+    const obraSocial = await this.prisma.obraSocial.findUnique({ where: { idObraSocial } });
+    if (!obraSocial || !obraSocial.activo) {
+      throw new NotFoundException(`No se encontró una obra social activa con id ${idObraSocial}.`);
+    }
+    return idObraSocial;
+  }
 
   async create(dto: CreateUsuarioDto) {
     // RB-02: nombre de usuario único.
@@ -29,6 +53,7 @@ export class UsuariosService {
       throw new ConflictException('Ya existe un usuario con ese nombre de usuario.');
     }
 
+    const idObraSocial = await this.resolverObraSocial(dto.rol, dto.idObraSocial);
     const contrasenaHasheada = await bcrypt.hash(dto.contrasena, 10);
 
     return this.prisma.usuario.create({
@@ -38,6 +63,7 @@ export class UsuariosService {
         nombreUsuario: dto.nombreUsuario,
         contrasena: contrasenaHasheada,
         rol: dto.rol,
+        idObraSocial,
       },
       select: usuarioSeguroSelect,
     });
@@ -62,7 +88,7 @@ export class UsuariosService {
   }
 
   async update(id: number, dto: UpdateUsuarioDto) {
-    await this.findOne(id);
+    const usuario = await this.findOne(id);
 
     if (dto.nombreUsuario) {
       const enUso = await this.prisma.usuario.findFirst({
@@ -73,9 +99,15 @@ export class UsuariosService {
       }
     }
 
+    // Se recalcula con el rol final (el nuevo o el que ya tenía).
+    const idObraSocial = await this.resolverObraSocial(
+      dto.rol ?? (usuario.rol as Rol),
+      dto.idObraSocial ?? usuario.idObraSocial,
+    );
+
     return this.prisma.usuario.update({
       where: { idUsuario: id },
-      data: dto,
+      data: { ...dto, idObraSocial },
       select: usuarioSeguroSelect,
     });
   }

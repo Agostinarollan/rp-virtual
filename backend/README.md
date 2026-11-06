@@ -41,7 +41,11 @@ La API queda disponible en `http://localhost:3000/api`.
 | profesionales | `/api/profesionales` | ABM de profesionales |
 | pacientes | `/api/pacientes` | ABM de pacientes |
 | obras-sociales | `/api/obras-sociales` | ABM de obras sociales |
-| prescripciones | `/api/prescripciones` | Emisión y gestión de prescripciones (RP) |
+| prescripciones | `/api/prescripciones` | Emisión y gestión de prescripciones (RP), auditoría de la obra social, habitación y turno de quirófano |
+| tipos-practica | `/api/tipos-practica` | ABM de tipos de práctica (alta/baja/modificación: solo Administrador) |
+| habitaciones | `/api/habitaciones` | ABM de habitaciones (solo Administrador) |
+| quirofanos | `/api/quirofanos` | ABM de quirófanos (solo Administrador) |
+| historial | `/api/historial` | Historial de prescripciones en Firestore (solo Administrador) |
 
 ## 5. Notas sobre Prisma ORM 7
 
@@ -55,8 +59,12 @@ Esta versión (la misma que usaron en la Guía 1) cambia varias cosas respecto a
 
 ## 6. Decisiones de diseño (según lo acordado)
 
-- **Rol**: no es una entidad — es el `enum Rol { ADMINISTRADOR, PROFESIONAL }` dentro de `Usuario`.
-- **Tipo de práctica**: no es una entidad — es el `enum TipoPractica { MEDICAMENTO, CIRUGIA, INTERNACION }` dentro de `Prescripcion`, mostrado como desplegable en el formulario.
+- **Rol**: no es una entidad — es el `enum Rol { ADMINISTRADOR, PROFESIONAL, OBRA_SOCIAL }` dentro de `Usuario`. Un usuario `OBRA_SOCIAL` queda vinculado a una obra social (`Usuario.idObraSocial`) y solo ve las prescripciones de sus afiliados en estado "Entregada a Obra Social", para auditarlas.
+- **Tipo de práctica**: es una **entidad** (tabla `tipos_practica`, con ABM), pedido del docente. Cada tipo tiene un `codigo` fijo (`MEDICAMENTO`, `CIRUGIA`, `INTERNACION`, …) que no cambia aunque se renombre, y es lo que usan las vistas de Habitaciones y Turnero de Quirófano.
+- **Estado de la prescripción**: `ENTREGADA_PACIENTE` (por defecto), `ENTREGADA_OBRA_SOCIAL` o `ANULADA`.
+- **Auditoría de la obra social**: campo aparte del estado (`estadoAuditoria`: `EN_AUDITORIA`, `APROBADA` o `RECHAZADA`, más `observacionesAuditoria`). Solo la carga el rol `OBRA_SOCIAL` (`PATCH /prescripciones/:id/auditoria`).
+- **Habitación**: a las prescripciones de internación y cirugía se les asigna una habitación (`PATCH /prescripciones/:id/habitacion`, solo Administrador).
+- **Turnero de quirófano**: cada cirugía puede tener un turno (`TurnoQuirofano`: quirófano + fecha y hora exacta). Un quirófano no puede tener dos turnos a la misma hora; al anular la prescripción se libera el turno (`PUT` / `DELETE /prescripciones/:id/turno-quirofano`, solo Administrador).
 - **Prescripción**: solo tiene dos campos de texto libre: `diagnostico` (obligatorio) y `observaciones` (opcional, ahí se anota por ejemplo la cantidad de medicamento).
 - **RB-04**: si el usuario logueado tiene rol `PROFESIONAL`, el backend fuerza que la prescripción se cree/edite/consulte con su propio `idProfesional` (no puede operar sobre las de otro profesional). Si es `ADMINISTRADOR`, puede buscar y elegir cualquier profesional.
 - Todas las bajas son **lógicas** (`activo: false`), para no perder trazabilidad histórica.

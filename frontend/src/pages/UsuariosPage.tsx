@@ -14,7 +14,7 @@ import {
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { api } from '../api/axios';
-import { Rol } from '../types';
+import { Rol, ROL_LABEL, type ObraSocial } from '../types';
 
 interface Usuario {
   idUsuario: number;
@@ -22,6 +22,8 @@ interface Usuario {
   apellido: string;
   nombreUsuario: string;
   rol: Rol;
+  idObraSocial: number | null;
+  obraSocial: { nombre: string } | null;
   activo: boolean;
 }
 
@@ -31,11 +33,13 @@ interface FormValues {
   nombreUsuario: string;
   contrasena?: string;
   rol: Rol;
+  idObraSocial?: number;
 }
 
-const ROL_LABEL: Record<Rol, string> = {
-  [Rol.ADMINISTRADOR]: 'Administrador',
-  [Rol.PROFESIONAL]: 'Profesional',
+const ROL_COLOR: Record<Rol, string> = {
+  [Rol.ADMINISTRADOR]: 'purple',
+  [Rol.PROFESIONAL]: 'blue',
+  [Rol.OBRA_SOCIAL]: 'orange',
 };
 
 export function UsuariosPage() {
@@ -46,12 +50,19 @@ export function UsuariosPage() {
   const [editando, setEditando] = useState<Usuario | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [form] = Form.useForm<FormValues>();
+  // El desplegable de obra social solo aparece si el rol elegido es OBRA_SOCIAL.
+  const rolElegido = Form.useWatch('rol', form);
+  const [obrasSociales, setObrasSociales] = useState<ObraSocial[]>([]);
 
   const cargar = useCallback(async () => {
     setCargando(true);
     try {
-      const { data } = await api.get<Usuario[]>('/usuarios');
+      const [{ data }, { data: obras }] = await Promise.all([
+        api.get<Usuario[]>('/usuarios'),
+        api.get<ObraSocial[]>('/obras-sociales'),
+      ]);
       setData(data);
+      setObrasSociales(obras);
     } catch {
       message.error('No se pudieron cargar los usuarios.');
     } finally {
@@ -76,6 +87,7 @@ export function UsuariosPage() {
       apellido: registro.apellido,
       nombreUsuario: registro.nombreUsuario,
       rol: registro.rol,
+      idObraSocial: registro.idObraSocial ?? undefined,
     });
     setModalAbierto(true);
   };
@@ -137,9 +149,10 @@ export function UsuariosPage() {
           {
             title: 'Rol',
             render: (_, r) => (
-              <Tag color={r.rol === Rol.ADMINISTRADOR ? 'purple' : 'blue'}>{ROL_LABEL[r.rol]}</Tag>
+              <Tag color={ROL_COLOR[r.rol]}>{ROL_LABEL[r.rol]}</Tag>
             ),
           },
+          { title: 'Obra social', render: (_, r) => r.obraSocial?.nombre ?? '-' },
           {
             title: 'Estado',
             render: (_, r) => <Tag color={r.activo ? 'green' : 'default'}>{r.activo ? 'ACTIVO' : 'INACTIVO'}</Tag>,
@@ -212,12 +225,28 @@ export function UsuariosPage() {
 
           <Form.Item label="Rol" name="rol" rules={[{ required: true, message: 'Requerido.' }]}>
             <Select
-              options={[
-                { value: Rol.ADMINISTRADOR, label: 'Administrador' },
-                { value: Rol.PROFESIONAL, label: 'Profesional' },
-              ]}
+              options={Object.values(Rol).map((rol) => ({ value: rol, label: ROL_LABEL[rol] }))}
             />
           </Form.Item>
+
+          {/* Rol Obra Social: el usuario queda vinculado a una obra social y solo
+              ve las prescripciones de sus afiliados entregadas a la obra social. */}
+          {rolElegido === Rol.OBRA_SOCIAL && (
+            <Form.Item
+              label="Obra social"
+              name="idObraSocial"
+              rules={[{ required: true, message: 'Seleccioná la obra social.' }]}
+            >
+              <Select
+                showSearch
+                optionFilterProp="label"
+                placeholder="Seleccioná la obra social"
+                options={obrasSociales
+                  .filter((o) => o.activo)
+                  .map((o) => ({ value: o.idObraSocial, label: o.nombre }))}
+              />
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </div>

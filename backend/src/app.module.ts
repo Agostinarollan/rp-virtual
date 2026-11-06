@@ -12,6 +12,9 @@ import { StorageModule } from './storage/storage.module';
 import { FirestoreModule } from './firestore/firestore.module';
 import { PlantillasModule } from './plantillas/plantillas.module';
 import { HistorialModule } from './historial/historial.module';
+import { TiposPracticaModule } from './tipos-practica/tipos-practica.module';
+import { HabitacionesModule } from './habitaciones/habitaciones.module';
+import { QuirofanosModule } from './quirofanos/quirofanos.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { HistorialModule } from './historial/historial.module';
     FirestoreModule,
     PlantillasModule,
     HistorialModule,
+    TiposPracticaModule,
+    HabitacionesModule,
+    QuirofanosModule,
   ],
 })
 export class AppModule {}

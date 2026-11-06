@@ -1,5 +1,0 @@
-export enum TipoPractica {
-  MEDICAMENTO = 'MEDICAMENTO',
-  CIRUGIA = 'CIRUGIA',
-  INTERNACION = 'INTERNACION',
-}

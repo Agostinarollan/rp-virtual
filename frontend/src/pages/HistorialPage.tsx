@@ -9,9 +9,11 @@ import {
   ACCION_HISTORIAL_COLOR,
   ACCION_HISTORIAL_LABEL,
   AccionHistorial,
+  ESTADO_AUDITORIA_LABEL,
+  ESTADO_PRESCRIPCION_LABEL,
+  EstadoAuditoria,
+  EstadoPrescripcion,
   Rol,
-  TIPO_PRACTICA_LABEL,
-  TipoPractica,
   type CambioHistorial,
   type RegistroHistorial,
 } from '../types';
@@ -22,13 +24,22 @@ const CAMPO_LABEL: Record<CambioHistorial['campo'], string> = {
   observaciones: 'Observaciones',
   estado: 'Estado',
   fecha: 'Fecha',
+  estadoAuditoria: 'Auditoría OS',
+  observacionesAuditoria: 'Observaciones de la OS',
 };
+
+// Registros anteriores a los cambios del docente guardaban el código del enum
+// viejo (ej: "MEDICAMENTO", "ENTREGADA"): si no hay etiqueta, se muestra tal cual.
+function etiquetaEstado(valor: string) {
+  return ESTADO_PRESCRIPCION_LABEL[valor as EstadoPrescripcion] ?? valor;
+}
 
 // Muestra el valor de un cambio de forma legible (fechas y tipos de práctica).
 function formatearValor(campo: CambioHistorial['campo'], valor: string | null) {
   if (!valor) return '-';
   if (campo === 'fecha') return dayjs(valor).format('DD/MM/YYYY');
-  if (campo === 'tipoPractica') return TIPO_PRACTICA_LABEL[valor as TipoPractica] ?? valor;
+  if (campo === 'estado') return etiquetaEstado(valor);
+  if (campo === 'estadoAuditoria') return ESTADO_AUDITORIA_LABEL[valor as EstadoAuditoria] ?? valor;
   return valor;
 }
 
@@ -114,7 +125,7 @@ export function HistorialPage() {
           expandedRowRender: (r) => (
             <Space direction="vertical" style={{ width: '100%' }}>
               <Descriptions size="small" column={2} bordered>
-                <Descriptions.Item label="Tipo">{TIPO_PRACTICA_LABEL[r.tipoPractica]}</Descriptions.Item>
+                <Descriptions.Item label="Tipo">{r.tipoPractica}</Descriptions.Item>
                 <Descriptions.Item label="Fecha de la prescripción">
                   {dayjs(r.fechaPrescripcion).format('DD/MM/YYYY')}
                 </Descriptions.Item>

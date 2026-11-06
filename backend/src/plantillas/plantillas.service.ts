@@ -37,6 +37,14 @@ export class PlantillasService {
     return idProfesionalSolicitado;
   }
 
+  // El tipo de práctica vive en MySQL: validamos que exista antes de guardar en Firestore.
+  private async validarTipoPractica(idTipoPractica: number) {
+    const tipoPractica = await this.prisma.tipoPractica.findUnique({ where: { idTipoPractica } });
+    if (!tipoPractica || !tipoPractica.activo) {
+      throw new NotFoundException(`No se encontró un tipo de práctica activo con id ${idTipoPractica}.`);
+    }
+  }
+
   async create(dto: CreatePlantillaDto, user: CurrentUserPayload) {
     const idProfesional = this.resolverIdProfesional(user, dto.idProfesional);
 
@@ -46,11 +54,13 @@ export class PlantillasService {
       throw new NotFoundException(`No se encontró el profesional con id ${idProfesional}.`);
     }
 
+    await this.validarTipoPractica(dto.idTipoPractica);
+
     const ahora = new Date();
     return this.firestore.crear(COLECCION, {
       idProfesional,
       nombre: dto.nombre,
-      tipoPractica: dto.tipoPractica,
+      idTipoPractica: dto.idTipoPractica,
       diagnostico: dto.diagnostico,
       observaciones: dto.observaciones,
       fechaCreacion: ahora,
@@ -84,9 +94,12 @@ export class PlantillasService {
 
   async update(id: string, dto: UpdatePlantillaDto, user: CurrentUserPayload) {
     await this.findOne(id, user);
+    if (dto.idTipoPractica) {
+      await this.validarTipoPractica(dto.idTipoPractica);
+    }
     await this.firestore.actualizar(COLECCION, id, {
       nombre: dto.nombre,
-      tipoPractica: dto.tipoPractica,
+      idTipoPractica: dto.idTipoPractica,
       diagnostico: dto.diagnostico,
       observaciones: dto.observaciones,
       fechaActualizacion: new Date(),

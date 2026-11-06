@@ -14,17 +14,29 @@ const TIEMPO_MAXIMO_MS = 5000;
 // historial conserva cómo estaba cuando se hizo la acción.
 interface PrescripcionAuditada {
   idPrescripcion: number;
-  tipoPractica: string;
+  tipoPractica: { nombre: string };
   diagnostico: string;
   observaciones: string | null;
   estado: string;
+  estadoAuditoria: string | null;
+  observacionesAuditoria: string | null;
   fecha: Date;
   paciente: { idPaciente: number; nombre: string; apellido: string; dni: string };
   profesional: { idProfesional: number; nombre: string; apellido: string; matricula: string };
 }
 
-// Campos que se comparan para armar la lista de cambios de una modificación.
-const CAMPOS_AUDITADOS = ['tipoPractica', 'diagnostico', 'observaciones', 'estado', 'fecha'] as const;
+// Campos que se comparan para armar la lista de cambios (como texto).
+function valoresAuditados(p: PrescripcionAuditada): Record<string, string | null> {
+  return {
+    tipoPractica: p.tipoPractica.nombre,
+    diagnostico: p.diagnostico,
+    observaciones: p.observaciones,
+    estado: p.estado,
+    fecha: p.fecha.toISOString(),
+    estadoAuditoria: p.estadoAuditoria,
+    observacionesAuditoria: p.observacionesAuditoria,
+  };
+}
 
 // Historial (auditoría) de prescripciones, guardado en Firestore. Los registros
 // solo se agregan: no hay endpoints para editarlos ni borrarlos (RB-14).
@@ -60,10 +72,12 @@ export class HistorialService {
           apellido: prescripcion.profesional.apellido,
           matricula: prescripcion.profesional.matricula,
         },
-        tipoPractica: prescripcion.tipoPractica,
+        tipoPractica: prescripcion.tipoPractica.nombre,
         diagnostico: prescripcion.diagnostico,
         observaciones: prescripcion.observaciones,
         estado: prescripcion.estado,
+        estadoAuditoria: prescripcion.estadoAuditoria,
+        observacionesAuditoria: prescripcion.observacionesAuditoria,
         fechaPrescripcion: prescripcion.fecha,
         cambios: anterior ? calcularCambios(anterior, prescripcion) : [],
       });
@@ -97,14 +111,10 @@ export class HistorialService {
   }
 }
 
-function aTexto(valor: string | Date | null): string | null {
-  return valor instanceof Date ? valor.toISOString() : valor;
-}
-
 function calcularCambios(anterior: PrescripcionAuditada, actual: PrescripcionAuditada) {
-  return CAMPOS_AUDITADOS.map((campo) => ({
-    campo,
-    antes: aTexto(anterior[campo]),
-    despues: aTexto(actual[campo]),
-  })).filter((cambio) => cambio.antes !== cambio.despues);
+  const antes = valoresAuditados(anterior);
+  const despues = valoresAuditados(actual);
+  return Object.keys(antes)
+    .map((campo) => ({ campo, antes: antes[campo], despues: despues[campo] }))
+    .filter((cambio) => cambio.antes !== cambio.despues);
 }

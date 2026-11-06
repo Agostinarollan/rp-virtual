@@ -1,5 +1,4 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { TipoPractica } from '../../common/enums/tipo-practica.enum';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 // Plantilla de prescripción (se guarda en Firestore, no en MySQL): diagnóstico
 // y observaciones que un profesional usa seguido, para no reescribirlos.
@@ -8,10 +7,9 @@ export class CreatePlantillaDto {
   @IsNotEmpty({ message: 'El nombre de la plantilla es obligatorio.' })
   nombre: string;
 
-  @IsEnum(TipoPractica, {
-    message: 'El tipo de práctica debe ser MEDICAMENTO, CIRUGIA o INTERNACION.',
-  })
-  tipoPractica: TipoPractica;
+  // Id de la entidad TipoPractica (tabla tipos_practica en MySQL).
+  @IsInt({ message: 'Seleccioná un tipo de práctica.' })
+  idTipoPractica: number;
 
   @IsString()
   @IsNotEmpty({ message: 'El diagnóstico es obligatorio.' })

@@ -1,5 +1,4 @@
-import { IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { TipoPractica } from '../../common/enums/tipo-practica.enum';
+import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreatePrescripcionDto {
   @IsInt()
@@ -12,12 +11,9 @@ export class CreatePrescripcionDto {
   @IsInt()
   idProfesional?: number;
 
-  // Reemplaza a la entidad Tipo_Practica: se elige desde un desplegable en el
-  // formulario (MEDICAMENTO | CIRUGIA | INTERNACION).
-  @IsEnum(TipoPractica, {
-    message: 'El tipo de práctica debe ser MEDICAMENTO, CIRUGIA o INTERNACION.',
-  })
-  tipoPractica: TipoPractica;
+  // Entidad TipoPractica (tabla tipos_practica): se elige desde un desplegable.
+  @IsInt({ message: 'Seleccioná un tipo de práctica.' })
+  idTipoPractica: number;
 
   // Único campo obligatorio de texto libre para el detalle clínico.
   @IsString()

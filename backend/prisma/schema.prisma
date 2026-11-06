@@ -15,21 +15,26 @@ datasource db {
 // ─────────────────────────────────────────
 
 // Reemplaza la entidad "Rol": pedido del docente.
+// OBRA_SOCIAL: usuario de una obra social (vinculado a obras_sociales) que
+// audita las prescripciones de sus afiliados.
 enum Rol {
   ADMINISTRADOR
   PROFESIONAL
-}
-
-// Reemplaza la entidad "Tipo_Practica" para simplificar el modelo.
-enum TipoPractica {
-  MEDICAMENTO
-  CIRUGIA
-  INTERNACION
+  OBRA_SOCIAL
 }
 
 enum EstadoPrescripcion {
-  ENTREGADA
+  ENTREGADA_PACIENTE
+  ENTREGADA_OBRA_SOCIAL
   ANULADA
+}
+
+// Resultado de la auditoría que hace la obra social (independiente del estado
+// de entrega de la prescripción). null = todavía no auditada.
+enum EstadoAuditoria {
+  EN_AUDITORIA
+  APROBADA
+  RECHAZADA
 }
 
 // ─────────────────────────────────────────
@@ -48,6 +53,10 @@ model Usuario {
   fechaActualizacion DateTime @updatedAt
 
   profesional Profesional?
+
+  // Solo para usuarios con rol OBRA_SOCIAL: a qué obra social pertenecen.
+  idObraSocial Int?
+  obraSocial   ObraSocial? @relation(fields: [idObraSocial], references: [idObraSocial])
 
   @@map("usuarios")
 }
@@ -100,18 +109,82 @@ model ObraSocial {
   fechaActualizacion DateTime @updatedAt
 
   pacientes Paciente[]
+  usuarios  Usuario[]
 
   @@map("obras_sociales")
 }
 
+// Antes era un enum: ahora es una entidad con ABM. "codigo" es fijo (no se
+// edita) y es lo que usa el sistema para reconocer CIRUGIA / INTERNACION;
+// "nombre" es lo que se muestra y se puede cambiar libremente.
+model TipoPractica {
+  idTipoPractica     Int      @id @default(autoincrement())
+  codigo             String   @unique @db.VarChar(50)
+  nombre             String   @unique @db.VarChar(100)
+  activo             Boolean  @default(true)
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  prescripciones Prescripcion[]
+
+  @@map("tipos_practica")
+}
+
+model Habitacion {
+  idHabitacion       Int      @id @default(autoincrement())
+  numero             String   @unique @db.VarChar(20)
+  piso               String?  @db.VarChar(20)
+  activo             Boolean  @default(true)
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  prescripciones Prescripcion[]
+
+  @@map("habitaciones")
+}
+
+model Quirofano {
+  idQuirofano        Int      @id @default(autoincrement())
+  nombre             String   @unique @db.VarChar(100)
+  activo             Boolean  @default(true)
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  turnos TurnoQuirofano[]
+
+  @@map("quirofanos")
+}
+
+// Turnero de quirófano: cada prescripción de cirugía tiene como mucho un turno,
+// y un quirófano no puede tener dos turnos en la misma fecha y hora.
+model TurnoQuirofano {
+  idTurnoQuirofano   Int      @id @default(autoincrement())
+  fechaHora          DateTime
+  fechaCreacion      DateTime @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  idQuirofano Int
+  quirofano   Quirofano @relation(fields: [idQuirofano], references: [idQuirofano])
+
+  idPrescripcion Int          @unique
+  prescripcion   Prescripcion @relation(fields: [idPrescripcion], references: [idPrescripcion])
+
+  @@unique([idQuirofano, fechaHora])
+  @@map("turnos_quirofano")
+}
+
 model Prescripcion {
   idPrescripcion Int                @id @default(autoincrement())
-  tipoPractica   TipoPractica
   diagnostico    String             @db.Text
   observaciones  String?            @db.Text
   fecha          DateTime
-  estado         EstadoPrescripcion @default(ENTREGADA)
+  estado         EstadoPrescripcion @default(ENTREGADA_PACIENTE)
   activo         Boolean            @default(true)
+
+  // Auditoría de la obra social del paciente.
+  estadoAuditoria        EstadoAuditoria?
+  observacionesAuditoria String?          @db.Text
+  fechaAuditoria         DateTime?
 
   fechaCreacion      DateTime @default(now())
   fechaActualizacion DateTime @updatedAt
@@ -121,6 +194,15 @@ model Prescripcion {
 
   idProfesional Int
   profesional   Profesional @relation(fields: [idProfesional], references: [idProfesional])
+
+  idTipoPractica Int
+  tipoPractica   TipoPractica @relation(fields: [idTipoPractica], references: [idTipoPractica])
+
+  // Solo para internación / cirugía.
+  idHabitacion Int?
+  habitacion   Habitacion? @relation(fields: [idHabitacion], references: [idHabitacion])
+
+  turnoQuirofano TurnoQuirofano?
 
   @@map("prescripciones")
 }

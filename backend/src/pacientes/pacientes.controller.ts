@@ -19,8 +19,10 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { Rol } from '../common/enums/rol.enum';
 
 // RF-05 - Gestión de pacientes: Administrador y Profesional (ambos habilitados).
+// La Obra Social no accede (solo ve los datos del paciente dentro de la prescripción).
 @Controller('pacientes')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Rol.ADMINISTRADOR, Rol.PROFESIONAL)
 export class PacientesController {
   constructor(private readonly pacientesService: PacientesService) {}
 

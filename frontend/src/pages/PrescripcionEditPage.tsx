@@ -4,25 +4,20 @@ import { Card, Form, Select, Input, Button, Typography, Descriptions, message, S
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { api } from '../api/axios';
 import {
-  TipoPractica,
-  TIPO_PRACTICA_LABEL,
   EstadoPrescripcion,
+  ESTADO_PRESCRIPCION_LABEL,
   type Prescripcion,
+  type TipoPractica,
 } from '../types';
 
 const { TextArea } = Input;
 
 interface FormValues {
-  tipoPractica: TipoPractica;
+  idTipoPractica: number;
   diagnostico: string;
   observaciones?: string;
   estado: EstadoPrescripcion;
 }
-
-const ESTADO_LABEL: Record<EstadoPrescripcion, string> = {
-  [EstadoPrescripcion.ENTREGADA]: 'Entregada',
-  [EstadoPrescripcion.ANULADA]: 'Anulada',
-};
 
 export function PrescripcionEditPage() {
   const { id } = useParams();
@@ -32,6 +27,14 @@ export function PrescripcionEditPage() {
   const [prescripcion, setPrescripcion] = useState<Prescripcion | null>(null);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [tiposPractica, setTiposPractica] = useState<TipoPractica[]>([]);
+
+  useEffect(() => {
+    api
+      .get<TipoPractica[]>('/tipos-practica')
+      .then(({ data }) => setTiposPractica(data))
+      .catch(() => message.error('No se pudieron cargar los tipos de práctica.'));
+  }, []);
 
   useEffect(() => {
     api
@@ -39,7 +42,7 @@ export function PrescripcionEditPage() {
       .then(({ data }) => {
         setPrescripcion(data);
         form.setFieldsValue({
-          tipoPractica: data.tipoPractica,
+          idTipoPractica: data.tipoPractica.idTipoPractica,
           diagnostico: data.diagnostico,
           observaciones: data.observaciones ?? undefined,
           estado: data.estado,
@@ -91,14 +94,14 @@ export function PrescripcionEditPage() {
       <Form form={form} layout="vertical" onFinish={onFinish} disabled={guardando}>
         <Form.Item
           label="Tipo de prescripción"
-          name="tipoPractica"
+          name="idTipoPractica"
           rules={[{ required: true, message: 'Seleccioná el tipo de práctica.' }]}
         >
+          {/* Se muestran los activos + el actual (aunque se haya dado de baja). */}
           <Select
-            options={Object.values(TipoPractica).map((tp) => ({
-              value: tp,
-              label: TIPO_PRACTICA_LABEL[tp],
-            }))}
+            options={tiposPractica
+              .filter((tp) => tp.activo || tp.idTipoPractica === prescripcion.tipoPractica.idTipoPractica)
+              .map((tp) => ({ value: tp.idTipoPractica, label: tp.nombre }))}
           />
         </Form.Item>
 
@@ -118,7 +121,7 @@ export function PrescripcionEditPage() {
           <Select
             options={Object.values(EstadoPrescripcion).map((e) => ({
               value: e,
-              label: ESTADO_LABEL[e],
+              label: ESTADO_PRESCRIPCION_LABEL[e],
             }))}
           />
         </Form.Item>

@@ -10,6 +10,7 @@ interface JwtPayload {
   nombreUsuario: string;
   rol: string;
   idProfesional: number | null;
+  idObraSocial: number | null;
 }
 
 @Injectable()
@@ -29,6 +30,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       nombreUsuario: payload.nombreUsuario,
       rol: payload.rol,
       idProfesional: payload.idProfesional,
+      // ?? null: tokens emitidos antes de agregar el rol OBRA_SOCIAL no lo traen.
+      idObraSocial: payload.idObraSocial ?? null,
     };
   }
 }

@@ -6,6 +6,7 @@ export interface CurrentUserPayload {
   nombreUsuario: string;
   rol: string;
   idProfesional: number | null; // null si el usuario no tiene perfil profesional asociado
+  idObraSocial: number | null; // solo para rol OBRA_SOCIAL: la obra social a la que pertenece
 }
 
 // Uso en un controller: @CurrentUser() user: CurrentUserPayload

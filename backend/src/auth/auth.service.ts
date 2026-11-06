@@ -32,6 +32,7 @@ export class AuthService {
       nombreUsuario: usuario.nombreUsuario,
       rol: usuario.rol,
       idProfesional: usuario.profesional?.idProfesional ?? null,
+      idObraSocial: usuario.idObraSocial,
     };
 
     return {
@@ -43,6 +44,7 @@ export class AuthService {
         nombreUsuario: usuario.nombreUsuario,
         rol: usuario.rol,
         idProfesional: usuario.profesional?.idProfesional ?? null,
+        idObraSocial: usuario.idObraSocial,
       },
     };
   }

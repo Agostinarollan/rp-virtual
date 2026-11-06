@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Card,
   Form,
@@ -16,8 +16,7 @@ import { api } from '../api/axios';
 import { useAuthStore } from '../store/auth.store';
 import {
   Rol,
-  TipoPractica,
-  TIPO_PRACTICA_LABEL,
+  type TipoPractica,
   type Paciente,
   type Profesional,
   type CreatePrescripcionPayload,
@@ -28,7 +27,7 @@ const { TextArea } = Input;
 interface FormValues {
   idPaciente: number;
   idProfesional?: number;
-  tipoPractica: TipoPractica;
+  idTipoPractica: number;
   diagnostico: string;
   observaciones?: string;
 }
@@ -40,6 +39,15 @@ export function PrescripcionFormPage() {
   const esAdministrador = usuario?.rol === Rol.ADMINISTRADOR;
 
   const [guardando, setGuardando] = useState(false);
+
+  // Tipos de práctica: ahora es una entidad, se traen de la API (solo activos).
+  const [tiposPractica, setTiposPractica] = useState<TipoPractica[]>([]);
+  useEffect(() => {
+    api
+      .get<TipoPractica[]>('/tipos-practica')
+      .then(({ data }) => setTiposPractica(data.filter((t) => t.activo)))
+      .catch(() => message.error('No se pudieron cargar los tipos de práctica.'));
+  }, []);
 
   // --- Búsqueda de paciente (por DNI o nombre/apellido) ---
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
@@ -88,7 +96,7 @@ export function PrescripcionFormPage() {
     try {
       const payload: CreatePrescripcionPayload = {
         idPaciente: values.idPaciente,
-        tipoPractica: values.tipoPractica,
+        idTipoPractica: values.idTipoPractica,
         diagnostico: values.diagnostico,
         observaciones: values.observaciones,
         // Si es Profesional, el backend ignora/fuerza esto con su propio
@@ -175,17 +183,17 @@ export function PrescripcionFormPage() {
           </Descriptions>
         )}
 
-        {/* --- Tipo de práctica: reemplaza a la entidad Tipo_Practica --- */}
+        {/* --- Tipo de práctica: entidad TipoPractica (ABM en "Tipos de práctica") --- */}
         <Form.Item
           label="Tipo de prescripción"
-          name="tipoPractica"
+          name="idTipoPractica"
           rules={[{ required: true, message: 'Seleccioná el tipo de práctica.' }]}
         >
           <Select
             placeholder="Seleccioná un tipo"
-            options={Object.values(TipoPractica).map((tp) => ({
-              value: tp,
-              label: TIPO_PRACTICA_LABEL[tp],
+            options={tiposPractica.map((tp) => ({
+              value: tp.idTipoPractica,
+              label: tp.nombre,
             }))}
           />
         </Form.Item>
